@@ -1,0 +1,87 @@
+<div style="padding: 20px">
+  <h1>Divisor de Archivos</h1>
+
+  <!-- Carga de archivo original -->
+  <input type="file" (change)="onFileSelected($event)" />
+  <br /><br />
+
+  <div *ngIf="selectedFile">
+    <p><strong>Archivo:</strong> {{ selectedFile.name }}</p>
+    <p><strong>Tamaño:</strong> {{ fileSizeKB }} KB ({{ fileSizeMB }} MB)</p>
+
+    <label>¿Cuántas partes quieres?</label>
+    <input
+      type="number"
+      min="1"
+      [(ngModel)]="partCount"
+      (change)="updateParts()"
+    />
+    <br /><br />
+
+    <div *ngFor="let part of partSizes; let i = index; trackBy: trackByIndex">
+      <label>Parte {{ i }} (KB):</label>
+      <input
+      type="number"
+      min="0"
+      [(ngModel)]="partSizes[i]"
+      (ngModelChange)="onPartSizeChange()"
+      inputmode="numeric"
+      style="width: 100px"
+    />
+    </div>
+
+    <p style="margin-top: 10px" [style.color]="remainingSize < 0 ? 'red' : 'black'">
+      Espacio restante: {{ remainingSize }} KB
+    </p>
+
+    <button [disabled]="remainingSize < 0" (click)="processFile()">
+      Procesar archivo
+    </button>
+
+    <p *ngIf="isProcessing">Procesando archivo...</p>
+  </div>
+
+  <!-- Segmentos generados -->
+  <div *ngIf="!isProcessing && segments.length > 0">
+    <h3>Segmentos generados:</h3>
+    <ul>
+      <li *ngFor="let segment of segments; let i = index">
+        Parte {{ i }}:
+        <a 
+          [href]="'http://localhost:8080/archives/download/' + segment.name" 
+          target="_blank" 
+          download
+          style="display: inline-block; margin-left: 10px; padding: 6px 12px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px;"
+        >
+          Descargar {{ segment.name }} ({{ segment.sizeKB }} KB)
+        </a>
+      </li>
+    </ul>
+
+    <!-- Envío por correo -->
+    <div style="margin-top: 20px">
+      <label for="email">Enviar por correo a:</label>
+      <input
+        type="email"
+        [(ngModel)]="recipientEmail"
+        placeholder="correo@ejemplo.com"
+        style="padding: 5px; width: 250px"
+      />
+      <button
+        (click)="sendEmail()"
+        [disabled]="!recipientEmail"
+        style="margin-left: 10px"
+      >
+        Enviar
+      </button>
+    </div>
+
+    <!-- Reconstrucción desde segmentos subidos -->
+    <div style="margin-top: 20px">
+      <input type="file" (change)="onMultipleFilesSelected($event)" multiple />
+      <button (click)="reconstructFromSelectedParts()" style="margin-top: 10px;">
+        Reconstruir desde segmentos
+      </button>
+    </div>
+  </div>
+</div>
